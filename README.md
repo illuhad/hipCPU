@@ -2,7 +2,7 @@
 
 hipCPU is a header-only implementation of (a subset of) AMD's HIP API with OpenMP for CPUs, and potentially other devices in the future with targeted OpenMP.
 For now, the main use case of the hipCPU project is to allow for easier debugging of HIP applications on CPUs instead of GPUs. Additionally, it also allows for a straight-forward implementation of host-fallbacks for HIP applications. In fact, the main motivation behind the hipCPU project is to serve as host fallback for the [hipSYCL](https://github.com/illuhad/hipSYCL) SYCL implementation.
-As such, while performance will certainly be a priority later on, it is not of prime concern for the current priorities of the project. The current parallelization scheme will likely be inefficient for most applications, but stay tuned :-)
+As such, while performance will certainly be a priority later on, it is not of prime concern for the current priorities of the project. The current parallelization scheme will likely be inefficient for most applications, but improvements are planned.
 
 Possible use cases for the hipCPU project include
 * Debugging of HIP applications on CPUs
@@ -30,8 +30,17 @@ You can then compile your HIP code with a regular, OpenMP-capable C++ compiler. 
 * At the moment, hipCPU cannot coexist together with regular HIP at runtime; i.e. you have to decide at compile-time which HIP you want to compile against. This restriction will probably be lifted at least to some extent in the future.
 
 ## Extensions
+
+There are a couple of things available in hipCPU that are unavailable in regular SYCL:
 * hipCPU defines the `__HIPCPU__` macro. This can be used by your code to check if regular HIP or hipCPU is used.
 * `hipLaunchTask(function, stream, args...)` can be used to execute `function(args...)` in the given stream as single, unparallelized task. This does not follow the HIP kernel execution model anymore, and anything related to it is unavailable: `hipThreadIdx_*`, `hipBlockDim_*`, shared memory etc. `hipLaunchTask` is particularly useful if you want to use HIP streams as some sort of thread pool or want to have your own OpenMP parallelization scheme in your task.
+* `hipMallocManaged()` is supported in analogy to `cudaMallocManaged()`
+
+## Implementation
+At the moment, hipCPU executes the blocks one at a time, with one OpenMP thread per HIP thread. This is necessary to ensure correct synchronization semantics within a block (i.e. `__syncthreads()`). And yes, this is highly inefficient for programs following HIP's fine-grained parallelism model for various reasons (false sharing, thread management overhead, ...).
+This inefficiency can be largely circumvented if you put a lot of work in one HIP thread, but this is usually not the way HIP programs are structured, especially if they were originally written for GPUs.
+
+`hipThreadIdx_x` etc are macros which access the static runtime object and return the thread id based on the OpenMP thread id and the block id based on the currently processed block. Since these macros must be well-defined globally, only a single kernel is executed at a time, even if you have several kernel launches in different non-blocking streams. This is not the case for the `hipLaunchTask` extension since `hipLaunchTask` does not need to guarantee correctness of `hipThreadIdx_x` etc.
 
 
 ## Example
