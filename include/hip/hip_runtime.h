@@ -444,7 +444,7 @@ hipError_t hipSetDevice(int device)
 }
 
 //hipError_t hipChooseDevice(int* device, const hipDeviceProp_t* prop);
-
+inline
 hipError_t hipStreamCreate(hipStream_t* stream)
 {
   *stream = _hipcpu_runtime.create_blocking_stream();
@@ -452,6 +452,7 @@ hipError_t hipStreamCreate(hipStream_t* stream)
 }
 
 //TODO Make sure semantics are correct for all allowed values of flags
+inline
 hipError_t hipStreamCreateWithFlags(hipStream_t* stream, unsigned int flags)
 {
   if(flags == hipStreamDefault)
@@ -465,12 +466,14 @@ hipError_t hipStreamCreateWithFlags(hipStream_t* stream, unsigned int flags)
   return hipErrorInvalidValue;
 }
 
+inline
 hipError_t hipStreamSynchronize(hipStream_t stream)
 {
   _hipcpu_runtime.streams().get(stream)->wait();
   return hipSuccess;
 }
 
+inline
 hipError_t hipStreamDestroy(hipStream_t stream)
 {
   _hipcpu_runtime.destroy_stream(stream);
@@ -478,6 +481,7 @@ hipError_t hipStreamDestroy(hipStream_t stream)
 }
 
 //TODO Make sure semantics are correct for all allowed values of flags
+inline
 hipError_t hipStreamWaitEvent(hipStream_t stream, hipEvent_t event,
                                             unsigned int flags)
 {
@@ -489,6 +493,7 @@ hipError_t hipStreamWaitEvent(hipStream_t stream, hipEvent_t event,
   return hipSuccess;
 }
 
+inline
 hipError_t hipStreamQuery(hipStream_t stream)
 {
   hipcpu::stream* s = _hipcpu_runtime.streams().get(stream);
@@ -500,6 +505,7 @@ hipError_t hipStreamQuery(hipStream_t stream)
 }
 
 //TODO Make sure semantics are correct for all allowed values of flags
+inline
 hipError_t hipStreamAddCallback(hipStream_t stream,
                                 hipStreamCallback_t callback, void *userData,
                                 unsigned int flags) 
@@ -573,25 +579,57 @@ hipError_t hipMemcpyDtoDAsync(hipDeviceptr_t dst, hipDeviceptr_t src, size_t siz
   return hipMemcpyAsync(dst, src, size, hipMemcpyDeviceToDevice, stream);
 }
 
+inline
+hipError_t hipMemcpyToSymbolAsync(const void* symbol, const void* src,
+                                  size_t sizeBytes, size_t offset,
+                                  hipMemcpyKind copyType,
+                                  hipStream_t stream = 0)
+{
+  char* base_ptr = static_cast<char*>(const_cast<void*>(symbol));
+  void* ptr = static_cast<void*>(base_ptr + offset);
+  return hipMemcpyAsync(ptr, src, sizeBytes, copyType, stream);
+}
 
+inline
+hipError_t hipMemcpyFromSymbolAsync(void* dst, const void* symbolName,
+                                    size_t sizeBytes, size_t offset,
+                                    hipMemcpyKind kind,
+                                    hipStream_t stream = 0)
+{
+  const void* ptr = 
+    static_cast<const void*>(static_cast<const char*>(symbolName)+offset);
+  return hipMemcpyAsync(dst, ptr, sizeBytes, kind, stream);
+}
 
+inline
 hipError_t hipMemcpyToSymbol(const void* symbol, const void* src, size_t sizeBytes,
                             size_t offset = 0,
-                            hipMemcpyKind copyType = hipMemcpyHostToDevice);
+                            hipMemcpyKind copyType = hipMemcpyHostToDevice)
+{
+  hipError_t err = 
+    hipMemcpyToSymbolAsync(symbol, src, sizeBytes, offset, copyType, 0);
 
-hipError_t hipMemcpyToSymbolAsync(const void* symbol, const void* src,
-                                                size_t sizeBytes, size_t offset,
-                                                hipMemcpyKind copyType,
-                                                hipStream_t stream = 0);
+  if(err != hipSuccess)
+    return err;
 
-hipError_t hipMemcpyFromSymbol(void* dst, const void* symbolName, size_t sizeBytes,
-                                             size_t offset = 0,
-                                             hipMemcpyKind kind = hipMemcpyDeviceToHost);
+  _hipcpu_runtime.streams().get(0)->wait();
+  return err;
+}
 
-hipError_t hipMemcpyFromSymbolAsync(void* dst, const void* symbolName,
-                                                  size_t sizeBytes, size_t offset,
-                                                  hipMemcpyKind kind,
-                                                  hipStream_t stream = 0);
+inline
+hipError_t hipMemcpyFromSymbol(void *dst, const void *symbolName,
+                               size_t sizeBytes, size_t offset = 0,
+                               hipMemcpyKind kind = hipMemcpyDeviceToHost) 
+{
+  hipError_t err = 
+    hipMemcpyFromSymbolAsync(dst, symbolName, sizeBytes, offset, kind, 0);
+    
+  if(err != hipSuccess)
+    return err;
+
+  _hipcpu_runtime.streams().get(0)->wait();
+  return err;
+}
 
 hipError_t hipMemcpy2D(void* dst, size_t dpitch, const void* src, size_t spitch,
                                      size_t width, size_t height, hipMemcpyKind kind);
@@ -659,7 +697,7 @@ hipError_t hipIpcOpenEventHandle(hipEvent_t* event, hipIpcEventHandle_t handle);
 hipError_t hipIpcOpenMemHandle(void** devPtr, hipIpcMemHandle_t handle,
                                              unsigned int flags);
 */
-
+inline
 hipError_t hipMemsetAsync(void* devPtr, int value, size_t count,
                                         hipStream_t stream = 0)
 {
@@ -673,7 +711,7 @@ hipError_t hipMemsetAsync(void* devPtr, int value, size_t count,
   return hipSuccess;
 }
 
-
+inline
 hipError_t hipMemset(void* devPtr, int value, size_t count)
 {
   hipError_t err = hipMemsetAsync(devPtr, value, count, 0);
@@ -684,6 +722,7 @@ hipError_t hipMemset(void* devPtr, int value, size_t count)
   return hipSuccess;
 }
 
+inline
 hipError_t hipMemsetD8(hipDeviceptr_t dest, unsigned char value, size_t sizeBytes)
 {
   return hipMemset(dest, value, sizeBytes);
@@ -777,12 +816,14 @@ hipError_t hipPointerGetAttributes(hipPointerAttribute_t* attributes, void* ptr)
 
 hipError_t hipMemGetInfo(size_t* free, size_t* total);
 
+inline
 hipError_t hipEventCreate(hipEvent_t* event)
 {
   *event = _hipcpu_runtime.create_event();
   return hipSuccess;
 }
 
+inline
 hipError_t hipEventRecord(hipEvent_t event, hipStream_t stream = 0)
 {
   if(!_hipcpu_runtime.events().is_valid(event) ||
@@ -796,6 +837,7 @@ hipError_t hipEventRecord(hipEvent_t event, hipStream_t stream = 0)
   return hipSuccess;
 }
 
+inline
 hipError_t hipEventSynchronize(hipEvent_t event)
 {
   if(!_hipcpu_runtime.events().is_valid(event))
@@ -812,6 +854,7 @@ hipError_t hipEventSynchronize(hipEvent_t event)
 
 hipError_t hipEventElapsedTime(float* ms, hipEvent_t start, hipEvent_t stop);
 
+inline
 hipError_t hipEventDestroy(hipEvent_t event)
 {
   if(!_hipcpu_runtime.events().is_valid(event))
@@ -863,6 +906,7 @@ hipError_t hipSetDeviceFlags(unsigned int flags);
 
 hipError_t hipEventCreateWithFlags(hipEvent_t* event, unsigned int flags);
 
+inline
 hipError_t hipEventQuery(hipEvent_t event)
 {
   if(!_hipcpu_runtime.events().is_valid(event))
@@ -1246,4 +1290,4 @@ __device__
 double __fma_rz(double x, double y, double z);
 
 
-#endif // HIP_RUNTIME_H
+#endif // HIPCPU_RUNTIME_H
