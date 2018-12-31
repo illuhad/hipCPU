@@ -785,6 +785,10 @@ hipError_t hipEventCreate(hipEvent_t* event)
 
 hipError_t hipEventRecord(hipEvent_t event, hipStream_t stream = 0)
 {
+  if(!_hipcpu_runtime.events().is_valid(event) ||
+     !_hipcpu_runtime.streams().is_valid(stream))
+    return hipErrorInvalidValue;
+
   std::shared_ptr<hipcpu::event> evt = _hipcpu_runtime.events().get_shared(event);
   _hipcpu_runtime.submit_operation([evt](){
     evt->mark_as_finished();
@@ -794,6 +798,8 @@ hipError_t hipEventRecord(hipEvent_t event, hipStream_t stream = 0)
 
 hipError_t hipEventSynchronize(hipEvent_t event)
 {
+  if(!_hipcpu_runtime.events().is_valid(event))
+    return hipErrorInvalidValue;
 
   hipcpu::event* evt = _hipcpu_runtime.events().get(event);
   evt->wait();
@@ -808,6 +814,9 @@ hipError_t hipEventElapsedTime(float* ms, hipEvent_t start, hipEvent_t stop);
 
 hipError_t hipEventDestroy(hipEvent_t event)
 {
+  if(!_hipcpu_runtime.events().is_valid(event))
+    return hipErrorInvalidValue;
+
   _hipcpu_runtime.destroy_event(event);
   return hipSuccess;
 }
@@ -856,6 +865,9 @@ hipError_t hipEventCreateWithFlags(hipEvent_t* event, unsigned int flags);
 
 hipError_t hipEventQuery(hipEvent_t event)
 {
+  if(!_hipcpu_runtime.events().is_valid(event))
+    return hipErrorInvalidValue;
+
   bool is_ready = _hipcpu_runtime.events().get(event)->is_complete();
 
   if(!is_ready)
