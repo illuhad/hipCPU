@@ -78,16 +78,16 @@ public:
   {
     std::lock_guard<std::mutex> lock{_lock};
 
-    assert(id < _data.size());
-    assert(_data[id] != nullptr);
+    assert(this->is_valid(id));
     return _data[id].get();
   }
   
   object_ptr get_shared(int id) const
   {
     std::lock_guard<std::mutex> lock{_lock};
-    assert(id < _data.size());
-    assert(_data[id] != nullptr);
+    
+    assert(this->is_valid(id));
+
     return _data[id];
   }
 
@@ -95,8 +95,7 @@ public:
   {
     std::lock_guard<std::mutex> lock{_lock};
 
-    assert(id < _data.size());
-    assert(_data[id] != nullptr);
+    assert(this->is_valid(id));
 
     _data[id] = nullptr;
   }
@@ -110,6 +109,16 @@ public:
       if(obj)
         h(obj.get());
     }
+  }
+
+  bool is_valid(int id) const
+  {
+    if(id >= _data.size())
+      return false;
+    if(_data[id] == nullptr)
+      return false;
+
+    return true;
   }
 private:
   mutable std::mutex _lock;
@@ -293,7 +302,7 @@ public:
   {
     return _events.store(std::make_unique<event>());
   }
-
+  
   void destroy_event(int event_id)
   {
     _events.destroy(event_id);

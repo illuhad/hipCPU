@@ -445,11 +445,79 @@ hipError_t hipSetDevice(int device)
 
 //hipError_t hipChooseDevice(int* device, const hipDeviceProp_t* prop);
 
+hipError_t hipStreamCreate(hipStream_t* stream)
+{
+  *stream = _hipcpu_runtime.create_blocking_stream();
+  return hipSuccess;
+}
+
+//TODO Make sure semantics are correct for all allowed values of flags
+hipError_t hipStreamCreateWithFlags(hipStream_t* stream, unsigned int flags)
+{
+  if(flags == hipStreamDefault)
+    return hipStreamCreate(stream);
+  else if (flags == hipStreamNonBlocking) 
+  {
+    *stream = _hipcpu_runtime.create_async_stream();
+    return hipSuccess;
+  }
+
+  return hipErrorInvalidValue;
+}
+
+hipError_t hipStreamSynchronize(hipStream_t stream)
+{
+  _hipcpu_runtime.streams().get(stream)->wait();
+  return hipSuccess;
+}
+
+hipError_t hipStreamDestroy(hipStream_t stream)
+{
+  _hipcpu_runtime.destroy_stream(stream);
+  return hipSuccess;
+}
+
+//TODO Make sure semantics are correct for all allowed values of flags
+hipError_t hipStreamWaitEvent(hipStream_t stream, hipEvent_t event,
+                                            unsigned int flags)
+{
+  std::shared_ptr<hipcpu::event> evt = _hipcpu_runtime.events().get_shared(event);
+  _hipcpu_runtime.submit_operation([evt](){
+    // TODO store error code
+    evt->wait();
+  }, stream);
+  return hipSuccess;
+}
+
+hipError_t hipStreamQuery(hipStream_t stream)
+{
+  hipcpu::stream* s = _hipcpu_runtime.streams().get(stream);
+  
+  if(s->is_idle())
+    return hipSuccess;
+
+  return hipErrorNotReady;
+}
+
+//TODO Make sure semantics are correct for all allowed values of flags
+hipError_t hipStreamAddCallback(hipStream_t stream,
+                                hipStreamCallback_t callback, void *userData,
+                                unsigned int flags) 
+{
+  _hipcpu_runtime.submit_operation([stream, callback, userData](){
+    // TODO guarantee correct error propagation
+    callback(stream, hipSuccess, userData);
+  }, stream);
+  return hipSuccess;
+}
 
 inline
 hipError_t hipMemcpyAsync(void* dst, const void* src, size_t sizeBytes,
                           hipMemcpyKind copyKind, hipStream_t stream = 0)
 {
+  if(!_hipcpu_runtime.streams().is_valid(stream))
+    return hipErrorInvalidValue;
+
   _hipcpu_runtime.submit_operation([=](){
     memcpy(dst, src, sizeBytes);
   }, stream);
@@ -591,12 +659,35 @@ hipError_t hipIpcOpenEventHandle(hipEvent_t* event, hipIpcEventHandle_t handle);
 hipError_t hipIpcOpenMemHandle(void** devPtr, hipIpcMemHandle_t handle,
                                              unsigned int flags);
 */
-hipError_t hipMemset(void* devPtr, int value, size_t count);
 
 hipError_t hipMemsetAsync(void* devPtr, int value, size_t count,
-                                        hipStream_t stream = 0);
+                                        hipStream_t stream = 0)
+{
+  if(!_hipcpu_runtime.streams().is_valid(stream))
+    return hipErrorInvalidValue;
+  
+  _hipcpu_runtime.submit_operation([=](){
+    memset(devPtr, value, count);
+  }, stream);
 
-hipError_t hipMemsetD8(hipDeviceptr_t dest, unsigned char value, size_t sizeBytes);
+  return hipSuccess;
+}
+
+
+hipError_t hipMemset(void* devPtr, int value, size_t count)
+{
+  hipError_t err = hipMemsetAsync(devPtr, value, count, 0);
+  if(err != hipSuccess)
+    return err;
+
+  _hipcpu_runtime.streams().get(0)->wait();
+  return hipSuccess;
+}
+
+hipError_t hipMemsetD8(hipDeviceptr_t dest, unsigned char value, size_t sizeBytes)
+{
+  return hipMemset(dest, value, sizeBytes);
+}
 
 /*
 hipError_t hipMemset2D(void* dst, size_t pitch, int value, size_t width, size_t height);
@@ -671,6 +762,7 @@ hipError_t hipGetDeviceProperties(hipDeviceProp_t* p_prop, int device)
   p_prop->isMultiGpuBoard = 0;
   p_prop->canMapHostMemory = 1;
   p_prop->gcnArch = 0;
+  
   return hipSuccess;
 }
 
@@ -702,6 +794,7 @@ hipError_t hipEventRecord(hipEvent_t event, hipStream_t stream = 0)
 
 hipError_t hipEventSynchronize(hipEvent_t event)
 {
+
   hipcpu::event* evt = _hipcpu_runtime.events().get(event);
   evt->wait();
 
@@ -716,72 +809,6 @@ hipError_t hipEventElapsedTime(float* ms, hipEvent_t start, hipEvent_t stop);
 hipError_t hipEventDestroy(hipEvent_t event)
 {
   _hipcpu_runtime.destroy_event(event);
-  return hipSuccess;
-}
-
-hipError_t hipStreamCreate(hipStream_t* stream)
-{
-  *stream = _hipcpu_runtime.create_blocking_stream();
-  return hipSuccess;
-}
-
-//TODO Make sure semantics are correct for all allowed values of flags
-hipError_t hipStreamCreateWithFlags(hipStream_t* stream, unsigned int flags)
-{
-  if(flags == hipStreamDefault)
-    return hipStreamCreate(stream);
-  else if (flags == hipStreamNonBlocking) 
-  {
-    *stream = _hipcpu_runtime.create_async_stream();
-    return hipSuccess;
-  }
-
-  return hipErrorInvalidValue;
-}
-
-hipError_t hipStreamSynchronize(hipStream_t stream)
-{
-  _hipcpu_runtime.streams().get(stream)->wait();
-  return hipSuccess;
-}
-
-hipError_t hipStreamDestroy(hipStream_t stream)
-{
-  _hipcpu_runtime.destroy_stream(stream);
-  return hipSuccess;
-}
-
-//TODO Make sure semantics are correct for all allowed values of flags
-hipError_t hipStreamWaitEvent(hipStream_t stream, hipEvent_t event,
-                                            unsigned int flags)
-{
-  std::shared_ptr<hipcpu::event> evt = _hipcpu_runtime.events().get_shared(event);
-  _hipcpu_runtime.submit_operation([evt](){
-    // TODO store error code
-    evt->wait();
-  }, stream);
-  return hipSuccess;
-}
-
-hipError_t hipStreamQuery(hipStream_t stream)
-{
-  hipcpu::stream* s = _hipcpu_runtime.streams().get(stream);
-  
-  if(s->is_idle())
-    return hipSuccess;
-
-  return hipErrorNotReady;
-}
-
-//TODO Make sure semantics are correct for all allowed values of flags
-hipError_t hipStreamAddCallback(hipStream_t stream,
-                                hipStreamCallback_t callback, void *userData,
-                                unsigned int flags) 
-{
-  _hipcpu_runtime.submit_operation([stream, callback, userData](){
-    // TODO guarantee correct error propagation
-    callback(stream, hipSuccess, userData);
-  }, stream);
   return hipSuccess;
 }
 
@@ -1121,9 +1148,6 @@ float __fsub_ru(float x, float y);
 
 __device__
 float __fsub_rz(float x, float y);
-
-
-
 
 __device__
 double __dadd_rd(double x, double y);
