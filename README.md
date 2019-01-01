@@ -17,11 +17,17 @@ You can then compile your HIP code with a regular, OpenMP-capable C++ compiler. 
 ## Limitations
 * CUDA-style kernel launch syntax with `<<< >>>` is unsupported since this requires special compiler support. Use the traditional `hipLaunchKernel` and `hipLaunchKernelGGL` macros instead.
 * Dynamic shared memory is supported, but must be requested with e.g.:
-  `int* shared_mem = (int*)HIP_DYNAMIC_SHARED_MEMORY;`
+  ```cpp
+  int* shared_mem = (int*)HIP_DYNAMIC_SHARED_MEMORY;
+  ```
   instead of the usual
-  `extern __shared__ int shared_mem[];`
+  ```cpp
+  extern __shared__ int shared_mem[];
+  ```
   This is because the latter requires explicit compiler support. Static shared memory can be used as usual:
-  `__shared__ int shared_mem[SIZE]`
+  ```cpp
+  __shared__ int shared_mem[SIZE];
+  ```
 * Dynamic shared memory can only be declared in function scope
 * Anything related to explicit context/module management is unsupported
 * Textures/surfaces are unimplemented at the moment
