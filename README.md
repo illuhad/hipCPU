@@ -37,7 +37,7 @@ You can then compile your HIP code with a regular, OpenMP-capable C++ compiler. 
 
 ## Extensions
 
-There are a couple of things available in hipCPU that are unavailable in regular SYCL:
+There are a couple of things available in hipCPU that are unavailable in regular HIP:
 * hipCPU defines the `__HIPCPU__` macro. This can be used by your code to check if regular HIP or hipCPU is used.
 * `hipLaunchTask(function, stream, args...)` can be used to execute `function(args...)` in the given stream as single, unparallelized task. This does not follow the HIP kernel execution model anymore, and anything related to it is unavailable: `hipThreadIdx_*`, `hipBlockDim_*`, shared memory etc. `hipLaunchTask` is particularly useful if you want to use HIP streams as some sort of thread pool or want to have your own OpenMP parallelization scheme in your task.
 * `hipMallocManaged()` is supported in analogy to `cudaMallocManaged()`
