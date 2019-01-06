@@ -28,17 +28,19 @@
 #ifndef HIPCPU_TYPES_HPP
 #define HIPCPU_TYPES_HPP
 
+#include <cstddef>
+
 namespace hipcpu {
 
 struct dim3
 {
-  dim3(int d0 = 1, int d1 = 1, int d2 = 1)
+  dim3(size_t d0 = 1, size_t d1 = 1, size_t d2 = 1)
     : x{d0}, y{d1}, z{d2}
   {}
 
-  int x;
-  int y;
-  int z;
+  size_t x;
+  size_t y;
+  size_t z;
 };
 
 }

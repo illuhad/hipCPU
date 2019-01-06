@@ -90,7 +90,7 @@ private:
 
 /* Implementation */
 
-
+inline
 async_queue::async_queue()
     : _continue{true}
 {
@@ -98,7 +98,7 @@ async_queue::async_queue()
   _async_queue = std::thread{[this](){ work(); } };
 }
 
-
+inline
 async_queue::~async_queue()
 {
   halt();
@@ -106,6 +106,7 @@ async_queue::~async_queue()
   assert(_enqueued_operations.empty());
 }
 
+inline
 void async_queue::wait()
 {
   std::unique_lock<std::mutex> lock(_mutex);
@@ -118,7 +119,7 @@ void async_queue::wait()
   }
 }
 
-
+inline
 void async_queue::halt()
 {
   wait();
@@ -130,6 +131,7 @@ void async_queue::halt()
     _async_queue.join();
 }
 
+inline
 void async_queue::work()
 {
   // This is the main function executed by the worker thread.
@@ -176,6 +178,7 @@ void async_queue::work()
   }
 }
 
+inline
 void async_queue::operator()(async_queue::async_function f)
 {
   std::unique_lock<std::mutex> lock(_mutex);
@@ -186,12 +189,14 @@ void async_queue::operator()(async_queue::async_function f)
   _condition_wait.notify_one();
 }
 
+inline
 std::size_t async_queue::queue_size() const 
 {
   std::lock_guard<std::mutex> lock(_mutex);
   return _enqueued_operations.size();
 }
 
+inline
 bool async_queue::is_idle() const noexcept
 {
   return _is_idle;

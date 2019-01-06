@@ -171,12 +171,12 @@ typedef enum hipChannelFormatKind {
 #define hipEventReleaseToSystem 0
 
 
-#define hipHostMallocDefault(...)
-#define hipHostMallocPortable(...)
-#define hipHostMallocMapped(...)
-#define hipHostMallocWriteCombined(...)
-#define hipHostMallocCoherent(...) 0x0
-#define hipHostMallocNonCoherent(...) 0x0
+#define hipHostMallocDefault 0x0
+#define hipHostMallocPortable 0x1
+#define hipHostMallocMapped 0x2
+#define hipHostMallocWriteCombined 0x4
+#define hipHostMallocCoherent 0x40000000
+#define hipHostMallocNonCoherent 0x80000000
 
 #define hipHostRegisterPortable 0
 #define hipHostRegisterMapped 0
@@ -1110,183 +1110,241 @@ HIPCPU_MAKE_VECTOR_TYPE(double, double)
 
 
 __device__
+inline
 void __syncthreads()
 {
   #pragma omp barrier
 }
 
 __device__
+inline
 float __fadd_rd(float x, float y);
 
 __device__
+inline
 float __fadd_rn(float x, float y);
 
 __device__
+inline
 float __fadd_ru(float x, float y);
 
 __device__
+inline
 float __fadd_rz(float x, float y);
 
 __device__
 float __fdiv_rd(float x, float y);
 
 __device__
+inline
 float __fdiv_rn(float x, float y);
 
 __device__
+inline
 float __fdiv_ru(float x, float y);
 
 __device__
+inline
 float __fdiv_rz(float x, float y);
 
 __device__
+inline
 float __fdividef(float x, float y);
 
 __device__
+inline
 float __fmaf_rd(float x, float y, float z);
 
 __device__
+inline
 float __fmaf_rn(float x, float y, float z);
 
 __device__
+inline
 float __fmaf_ru(float x, float y, float z);
 
 __device__
+inline
 float __fmaf_rz(float x, float y, float z);
 
 __device__
+inline
 float __fmul_rd(float x, float y);
 
 __device__
+inline
 float __fmul_rn(float x, float y);
 
 __device__
+inline
 float __fmul_ru(float x, float y);
 
 __device__
+inline
 float __fmul_rz(float x, float y);
 
 __device__
+inline
 float __frcp_rd(float x);
 
 __device__
+inline
 float __frcp_rn(float x);
 
 __device__
+inline
 float __frcp_ru(float x);
 
 __device__
+inline
 float __frcp_rz(float x);
 
 __device__
+inline
 float __frsqrt_rn(float x);
 
 __device__
+inline
 float __fsqrt_rd(float x);
 
 __device__
+inline
 float __fsqrt_rn(float x);
 
 __device__
+inline
 float __fsqrt_ru(float x);
 
 __device__
+inline
 float __fsqrt_rz(float x);
 
 __device__
+inline
 float __fsub_rd(float x, float y);
 
 __device__
+inline
 float __fsub_rn(float x, float y);
 
 __device__
+inline
 float __fsub_ru(float x, float y);
 
 __device__
+inline
 float __fsub_rz(float x, float y);
 
 __device__
+inline
 double __dadd_rd(double x, double y);
 
 __device__
+inline
 double __dadd_rn(double x, double y);
 
 __device__
+inline
 double __dadd_ru(double x, double y);
 
 __device__
+inline
 double __dadd_rz(double x, double y);
 
 __device__
+inline
 double __ddiv_rd(double x, double y);
 
 __device__
+inline
 double __ddiv_rn(double x, double y);
 
 __device__
+inline
 double __ddiv_ru(double x, double y);
 
 __device__
+inline
 double __ddiv_rz(double x, double y);
 
 __device__
+inline
 double __dmul_rd(double x, double y);
 
 __device__
+inline
 double __dmul_rn(double x, double y);
 
 __device__
+inline
 double __dmul_ru(double x, double y);
 
 __device__
+inline
 double __dmul_rz(double x, double y);
 
 __device__
+inline
 double __drcp_rd(double x);
 
 __device__
+inline
 double __drcp_rn(double x);
 
 __device__
+inline
 double __drcp_ru(double x);
 
 __device__
+inline
 double __drcp_rz(double x);
 
 __device__
+inline
 double __dsqrt_rd(double x);
 
 __device__
+inline
 double __dsqrt_rn(double x);
 
 __device__
+inline
 double __dsqrt_ru(double x);
 
 __device__
+inline
 double __dsqrt_rz(double x);
 
 __device__
+inline
 double __dsub_rd(double x, double y);
 
 __device__
+inline
 double __dsub_rn(double x, double y);
 
 __device__
+inline
 double __dsub_ru(double x, double y);
 
 __device__
+inline
 double __dsub_rz(double x, double y);
 
 __device__
+inline
 double __fma_rd(double x, double y, double z);
 
 __device__
+inline
 double __fma_rn(double x, double y, double z);
 
 __device__
+inline
 double __fma_ru(double x, double y, double z);
 
 __device__
+inline
 double __fma_rz(double x, double y, double z);
 
 

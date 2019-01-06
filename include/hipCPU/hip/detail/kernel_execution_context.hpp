@@ -45,9 +45,9 @@ public:
   kernel_block_context(dim3 block_dim, int dynamic_shared_mem_size = 0)
   : _thread_ids(block_dim.x*block_dim.y*block_dim.z), _block_dim{block_dim}
   {
-    for(int x = 0; x < block_dim.x; ++x){
-      for(int y = 0; y < block_dim.y; ++y){
-        for(int z = 0; z < block_dim.z; ++z){
+    for(size_t x = 0; x < block_dim.x; ++x){
+      for(size_t y = 0; y < block_dim.y; ++y){
+        for(size_t z = 0; z < block_dim.z; ++z){
         
           _thread_ids[z + block_dim.z*y + block_dim.y*block_dim.z*x] 
             = dim3{x,y,z};

@@ -193,13 +193,13 @@ public:
       _grid_context = detail::kernel_grid_context{grid};
 
 #pragma omp parallel for num_threads(block.x*block.y*block.z) collapse(3)
-      for(int l_x = 0; l_x < block.x; ++l_x){
-        for(int l_y = 0; l_y < block.y; ++l_y){
-          for(int l_z = 0; l_z < block.z; ++l_z){
+      for(size_t l_x = 0; l_x < block.x; ++l_x){
+        for(size_t l_y = 0; l_y < block.y; ++l_y){
+          for(size_t l_z = 0; l_z < block.z; ++l_z){
 
-            for(int g_x = 0; g_x < grid.x; ++g_x){
-              for(int g_y = 0; g_y < grid.y; ++g_y){
-                for(int g_z = 0; g_z < grid.z; ++g_z){
+            for(size_t g_x = 0; g_x < grid.x; ++g_x){
+              for(size_t g_y = 0; g_y < grid.y; ++g_y){
+                for(size_t g_z = 0; g_z < grid.z; ++g_z){
                   _grid_context.set_block_id(dim3{g_x, g_y, g_z});
                   f();
                   // TODO: Can this barrier be removed if
