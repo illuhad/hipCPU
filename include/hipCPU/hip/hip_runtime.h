@@ -866,7 +866,12 @@ hipError_t hipEventDestroy(hipEvent_t event)
 
 hipError_t hipDriverGetVersion(int* driverVersion);
 
-hipError_t hipRuntimeGetVersion(int* runtimeVersion);
+inline
+hipError_t hipRuntimeGetVersion(int* runtimeVersion)
+{
+  *runtimeVersion = 99999;
+  return hipSuccess;
+}
 
 hipError_t hipDeviceCanAccessPeer(int* canAccessPeer, int device, int peerDevice);
 
