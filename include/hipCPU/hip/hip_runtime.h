@@ -57,6 +57,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <cmath>
 
 #include "detail/runtime.hpp"
 
@@ -1123,234 +1124,409 @@ void __syncthreads()
 
 __device__
 inline
-float __fadd_rd(float x, float y);
+float __fadd_rd(float x, float y)
+{
+  return x+y;
+}
 
 __device__
 inline
-float __fadd_rn(float x, float y);
+float __fadd_rn(float x, float y)
+{
+  return x+y;
+}
 
 __device__
 inline
-float __fadd_ru(float x, float y);
+float __fadd_ru(float x, float y)
+{
+  return x+y;
+}
 
 __device__
 inline
-float __fadd_rz(float x, float y);
-
-__device__
-float __fdiv_rd(float x, float y);
-
-__device__
-inline
-float __fdiv_rn(float x, float y);
+float __fadd_rz(float x, float y)
+{
+  return x+y;
+}
 
 __device__
 inline
-float __fdiv_ru(float x, float y);
+float __fdiv_rd(float x, float y)
+{
+  return x/y;
+}
 
 __device__
 inline
-float __fdiv_rz(float x, float y);
+float __fdiv_rn(float x, float y)
+{
+  return x/y;
+}
 
 __device__
 inline
-float __fdividef(float x, float y);
+float __fdiv_ru(float x, float y)
+{
+  return x/y;
+}
 
 __device__
 inline
-float __fmaf_rd(float x, float y, float z);
+float __fdiv_rz(float x, float y)
+{
+  return x/y;
+}
 
 __device__
 inline
-float __fmaf_rn(float x, float y, float z);
+float __fdividef(float x, float y)
+{
+  return x/y;
+}
 
 __device__
 inline
-float __fmaf_ru(float x, float y, float z);
+float __fmaf_rd(float x, float y, float z)
+{
+  return std::fma(x,y,z);
+}
 
 __device__
 inline
-float __fmaf_rz(float x, float y, float z);
+float __fmaf_rn(float x, float y, float z)
+{
+  return std::fma(x,y,z);
+}
 
 __device__
 inline
-float __fmul_rd(float x, float y);
+float __fmaf_ru(float x, float y, float z)
+{
+  return std::fma(x,y,z);
+}
 
 __device__
 inline
-float __fmul_rn(float x, float y);
+float __fmaf_rz(float x, float y, float z)
+{
+  return std::fma(x,y,z);
+}
 
 __device__
 inline
-float __fmul_ru(float x, float y);
+float __fmul_rd(float x, float y)
+{
+  return x*y;
+}
 
 __device__
 inline
-float __fmul_rz(float x, float y);
+float __fmul_rn(float x, float y)
+{
+  return x*y;
+}
 
 __device__
 inline
-float __frcp_rd(float x);
+float __fmul_ru(float x, float y)
+{
+  return x*y;
+}
 
 __device__
 inline
-float __frcp_rn(float x);
+float __fmul_rz(float x, float y)
+{
+  return x*y;
+}
 
 __device__
 inline
-float __frcp_ru(float x);
+float __frcp_rd(float x)
+{
+  return 1.f/x;
+}
 
 __device__
 inline
-float __frcp_rz(float x);
+float __frcp_rn(float x)
+{
+  return 1.f/x;
+}
 
 __device__
 inline
-float __frsqrt_rn(float x);
+float __frcp_ru(float x)
+{
+  return 1.f/x;
+}
 
 __device__
 inline
-float __fsqrt_rd(float x);
+float __frcp_rz(float x)
+{
+  return 1.f/x;
+}
 
 __device__
 inline
-float __fsqrt_rn(float x);
+float __frsqrt_rn(float x)
+{
+  return 1.f/std::sqrt(x);
+}
 
 __device__
 inline
-float __fsqrt_ru(float x);
+float __fsqrt_rd(float x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-float __fsqrt_rz(float x);
+float __fsqrt_rn(float x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-float __fsub_rd(float x, float y);
+float __fsqrt_ru(float x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-float __fsub_rn(float x, float y);
+float __fsqrt_rz(float x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-float __fsub_ru(float x, float y);
+float __fsub_rd(float x, float y)
+{
+  return x-y;
+}
 
 __device__
 inline
-float __fsub_rz(float x, float y);
+float __fsub_rn(float x, float y)
+{
+  return x-y;
+}
 
 __device__
 inline
-double __dadd_rd(double x, double y);
+float __fsub_ru(float x, float y)
+{
+  return x-y;
+}
 
 __device__
 inline
-double __dadd_rn(double x, double y);
+float __fsub_rz(float x, float y)
+{
+  return x-y;
+}
 
 __device__
 inline
-double __dadd_ru(double x, double y);
+double __dadd_rd(double x, double y)
+{
+  return x+y;
+}
 
 __device__
 inline
-double __dadd_rz(double x, double y);
+double __dadd_rn(double x, double y)
+{
+  return x+y;
+}
 
 __device__
 inline
-double __ddiv_rd(double x, double y);
+double __dadd_ru(double x, double y)
+{
+  return x+y;
+}
 
 __device__
 inline
-double __ddiv_rn(double x, double y);
+double __dadd_rz(double x, double y)
+{
+  return x+y;
+}
 
 __device__
 inline
-double __ddiv_ru(double x, double y);
+double __ddiv_rd(double x, double y)
+{
+  return x/y;
+}
 
 __device__
 inline
-double __ddiv_rz(double x, double y);
+double __ddiv_rn(double x, double y)
+{
+  return x/y;
+}
 
 __device__
 inline
-double __dmul_rd(double x, double y);
+double __ddiv_ru(double x, double y)
+{
+  return x/y;
+}
 
 __device__
 inline
-double __dmul_rn(double x, double y);
+double __ddiv_rz(double x, double y)
+{
+  return x/y;
+}
 
 __device__
 inline
-double __dmul_ru(double x, double y);
+double __dmul_rd(double x, double y)
+{
+  return x*y;
+}
 
 __device__
 inline
-double __dmul_rz(double x, double y);
+double __dmul_rn(double x, double y)
+{
+  return x*y;
+}
 
 __device__
 inline
-double __drcp_rd(double x);
+double __dmul_ru(double x, double y)
+{
+  return x*y;
+}
 
 __device__
 inline
-double __drcp_rn(double x);
+double __dmul_rz(double x, double y)
+{
+  return x*y;
+}
 
 __device__
 inline
-double __drcp_ru(double x);
+double __drcp_rd(double x)
+{
+  return 1./x;
+}
 
 __device__
 inline
-double __drcp_rz(double x);
+double __drcp_rn(double x)
+{
+  return 1./x;
+}
 
 __device__
 inline
-double __dsqrt_rd(double x);
+double __drcp_ru(double x)
+{
+  return 1./x;
+}
 
 __device__
 inline
-double __dsqrt_rn(double x);
+double __drcp_rz(double x)
+{
+  return 1./x;
+}
 
 __device__
 inline
-double __dsqrt_ru(double x);
+double __dsqrt_rd(double x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-double __dsqrt_rz(double x);
+double __dsqrt_rn(double x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-double __dsub_rd(double x, double y);
+double __dsqrt_ru(double x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-double __dsub_rn(double x, double y);
+double __dsqrt_rz(double x)
+{
+  return std::sqrt(x);
+}
 
 __device__
 inline
-double __dsub_ru(double x, double y);
+double __dsub_rd(double x, double y)
+{
+  return x - y;
+}
 
 __device__
 inline
-double __dsub_rz(double x, double y);
+double __dsub_rn(double x, double y)
+{
+  return x - y;
+}
 
 __device__
 inline
-double __fma_rd(double x, double y, double z);
+double __dsub_ru(double x, double y)
+{
+  return x - y;
+}
 
 __device__
 inline
-double __fma_rn(double x, double y, double z);
+double __dsub_rz(double x, double y)
+{
+  return x - y;
+}
 
 __device__
 inline
-double __fma_ru(double x, double y, double z);
+double __fma_rd(double x, double y, double z)
+{
+  return std::fma(x,y,z);
+}
 
 __device__
 inline
-double __fma_rz(double x, double y, double z);
+double __fma_rn(double x, double y, double z)
+{
+  return std::fma(x,y,z);
+}
+
+__device__
+inline
+double __fma_ru(double x, double y, double z)
+{
+  return std::fma(x,y,z);
+}
+
+__device__
+inline
+double __fma_rz(double x, double y, double z)
+{
+  return std::fma(x,y,z);
+}
 
 
 #endif // HIPCPU_RUNTIME_H
