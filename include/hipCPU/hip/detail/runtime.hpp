@@ -32,6 +32,7 @@
 #include <limits>
 #include <memory>
 #include <unordered_map>
+#include <stdexcept>
 
 #include "queue.hpp"
 #include "types.hpp"
@@ -187,12 +188,20 @@ public:
   void submit_kernel(stream& execution_stream, 
                     dim3 grid, dim3 block, int shared_mem, Func f)
   {
+#ifdef HIPCPU_NO_OPENMP
+    if(block.x * block.y * block.z > 1)
+      throw std::invalid_argument{"More than 1 thread per block requires compiling"
+                                  " hipCPU with OpenMP support."};
+#endif
+
     execution_stream([=](){
       std::lock_guard<std::mutex> lock{this->_kernel_execution_mutex};
       _block_context = detail::kernel_block_context{block, shared_mem};
       _grid_context = detail::kernel_grid_context{grid};
 
-#pragma omp parallel for num_threads(block.x*block.y*block.z) collapse(3)
+#ifndef HIPCPU_NO_OPENMP
+  #pragma omp parallel for num_threads(block.x*block.y*block.z) collapse(3)
+#endif
       for(size_t l_x = 0; l_x < block.x; ++l_x){
         for(size_t l_y = 0; l_y < block.y; ++l_y){
           for(size_t l_z = 0; l_z < block.z; ++l_z){
@@ -226,7 +235,9 @@ public:
 
   void barrier()
   {
+#ifndef HIPCPU_NO_OPENMP
     #pragma omp barrier
+#endif
   }
 
   const detail::kernel_block_context& get_block() const
@@ -241,12 +252,20 @@ public:
 
   int get_max_threads()
   {
+#ifndef HIPCPU_NO_OPENMP
     return omp_get_max_threads();
+#else
+    return 1;
+#endif
   }
 
   int get_num_compute_units()
   {
+#ifndef HIPCPU_NO_OPENMP
     return omp_get_num_procs();
+#else
+    return 1;
+#endif
   }
 
   constexpr std::size_t get_max_shared_memory() const

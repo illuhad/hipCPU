@@ -30,7 +30,10 @@
 
 #include "malloc.hpp"
 #include "types.hpp"
+
+#ifndef HIPCPU_NO_OPENMP
 #include <omp.h>
+#endif
 
 namespace hipcpu {
 namespace detail {
@@ -61,7 +64,7 @@ public:
 
   dim3 get_thread_id() const noexcept
   {
-    return _thread_ids[omp_get_thread_num()];
+    return _thread_ids[get_linear_thread_id()];
   }
 
   void* get_dynamic_shared_mem() const noexcept
@@ -74,6 +77,14 @@ public:
     return _block_dim;
   }
 private:
+  int get_linear_thread_id() const noexcept
+  {
+#ifndef HIPCPU_NO_OPENMP
+    return omp_get_thread_num();
+#else
+    return 0;
+#endif
+  }
 
   std::vector<dim3> _thread_ids;
   mutable std::vector<char/*,default_aligned_allocator<char>*/> _shared_mem;
