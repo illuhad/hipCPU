@@ -268,7 +268,7 @@ public:
 #endif
   }
 
-  constexpr std::size_t get_max_shared_memory() const
+  std::size_t get_max_shared_memory() const
   { return std::numeric_limits<std::size_t>::max(); }
 
   void* get_dynamic_shared_memory() const
