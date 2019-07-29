@@ -58,6 +58,7 @@
 #include <limits>
 #include <memory>
 #include <cmath>
+#include <stdexcept>
 
 #include "detail/runtime.hpp"
 
@@ -643,9 +644,13 @@ hipError_t hipMemcpy2D(void* dst, size_t dpitch, const void* src, size_t spitch,
 
 hipError_t hipMemcpy3D(const struct hipMemcpy3DParms *p);
 
+inline
 hipError_t hipMemcpy2DAsync(void* dst, size_t dpitch, const void* src, size_t spitch,
                                           size_t width, size_t height, hipMemcpyKind kind,
-                                          hipStream_t stream);
+                                          hipStream_t stream)
+{
+  throw std::runtime_error{"hipCPU: hipMemcpy2DAsync is unimplemented"};
+}
 
 hipError_t hipMemcpy2DToArray(hipArray* dst, size_t wOffset, size_t hOffset,
                                             const void* src, size_t spitch, size_t width,
