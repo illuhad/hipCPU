@@ -227,6 +227,20 @@ public:
     });
   }
 
+
+  template<class Func>
+  void submit_kernel(stream& execution_stream, 
+                    int shared_mem, Func f)
+  {
+    execution_stream([=]{
+      std::lock_guard<std::mutex> lock{this->_kernel_execution_mutex};
+      _block_context = detail::kernel_block_context{dim3{1,1,1}, shared_mem};
+      _grid_context = detail::kernel_grid_context{dim3{1,1,1}};
+      _grid_context.set_block_id(dim3{0, 0, 0});
+      f();
+    });
+  }
+
   template<class Func>
   void submit_operation(stream& execution_stream, Func f)
   {
@@ -373,6 +387,13 @@ public:
   {
     auto s = this->_streams.get(stream);
     this->dev().submit_kernel(*s, grid, block, shared_mem, f);
+  }
+
+  template<class Func>
+  void submit_unparallelized_kernel(int scratch_mem, int stream, Func f)
+  {
+    auto s = this->_streams.get(stream);
+    this->dev().submit_kernel(*s, scratch_mem, f);
   }
 
 private:

@@ -87,6 +87,12 @@ typedef int hipLaunchParm;
     f(__VA_ARGS__); \
   }, stream)
 
+#define hipLaunchSequentialKernel(f, stream, scratch_mem, ...) \
+  _hipcpu_runtime.submit_unparallelized_kernel(scratch_mem, stream, \
+                                          [=](){ \
+                                            f(__VA_ARGS__); \
+                                          })
+
 // TODO
 #define hipLaunchKernelNoBarrier(f, grid, block, stream, ...)
 
