@@ -639,8 +639,6 @@ hipError_t hipMemcpyFromSymbol(void *dst, const void *symbolName,
   return err;
 }
 
-hipError_t hipMemcpy2D(void* dst, size_t dpitch, const void* src, size_t spitch,
-                                     size_t width, size_t height, hipMemcpyKind kind);
 
 hipError_t hipMemcpy3D(const struct hipMemcpy3DParms *p);
 
@@ -649,7 +647,33 @@ hipError_t hipMemcpy2DAsync(void* dst, size_t dpitch, const void* src, size_t sp
                                           size_t width, size_t height, hipMemcpyKind kind,
                                           hipStream_t stream)
 {
-  throw std::runtime_error{"hipCPU: hipMemcpy2DAsync is unimplemented"};
+  if(!_hipcpu_runtime.streams().is_valid(stream))
+    return hipErrorInvalidValue;
+
+  _hipcpu_runtime.submit_operation([=](){
+    for(size_t row = 0; row < height; ++row)
+    {
+      void* row_dst_begin = reinterpret_cast<char*>(dst) + row * dpitch;
+      const void* row_src_begin = reinterpret_cast<const char*>(src) + row * spitch;
+
+      memcpy(row_dst_begin, row_src_begin, width);
+    }
+  }, stream);
+  
+  return hipSuccess;
+}
+
+inline
+hipError_t hipMemcpy2D(void* dst, size_t dpitch, const void* src, size_t spitch,
+                                     size_t width, size_t height, hipMemcpyKind kind)
+{
+  hipError_t err = hipMemcpy2DAsync(dst, dpitch, src, spitch, width, height, kind, 0);
+
+  if(err != hipSuccess)
+    return err;
+
+  _hipcpu_runtime.streams().get(0)->wait();
+  return err;
 }
 
 hipError_t hipMemcpy2DToArray(hipArray* dst, size_t wOffset, size_t hOffset,
