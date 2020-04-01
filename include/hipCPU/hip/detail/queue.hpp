@@ -78,7 +78,7 @@ private:
 
   std::thread _async_queue;
 
-  bool _continue;
+  std::atomic<bool> _continue;
 
   std::condition_variable _condition_wait;
   mutable std::mutex _mutex;
