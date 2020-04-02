@@ -174,10 +174,10 @@ void async_queue::work()
     _is_idle = false;
     operation();
 
-    _is_idle = [this] {
+    {
       std::lock_guard<std::mutex> lock(_mutex);
-      return _enqueued_operations.empty();
-    }();
+      _is_idle = _enqueued_operations.empty();
+    }
  
     _condition_wait.notify_one();
 
