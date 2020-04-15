@@ -78,7 +78,7 @@ private:
 
   std::thread _async_queue;
 
-  bool _continue;
+  std::atomic<bool> _continue;
 
   std::condition_variable _condition_wait;
   mutable std::mutex _mutex;
@@ -138,10 +138,14 @@ void async_queue::work()
   // The loop is executed as long as there are enqueued operations,
   // (_is_operation_pending) or we should wait for new operations
   // (_continue).
-  while(_continue || _enqueued_operations.size() > 0)
+  while(true)
   {
     {
       std::unique_lock<std::mutex> lock(_mutex);
+
+      // enclosing loop termination must be checked while holding
+      // a lock on _enqueued_operations (_continue is std::atomic<bool>)
+      if(!_continue && _enqueued_operations.size() <= 0) break;
 
       // Before going to sleep, wake up the other thread in case it is is waiting
       // for the queue to get empty
@@ -170,9 +174,11 @@ void async_queue::work()
     _is_idle = false;
     operation();
 
-    if(_enqueued_operations.empty())
-      _is_idle = true;
-
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      _is_idle = _enqueued_operations.empty();
+    }
+ 
     _condition_wait.notify_one();
 
   }
