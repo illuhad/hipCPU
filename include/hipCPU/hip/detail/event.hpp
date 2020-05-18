@@ -29,6 +29,7 @@
 #define HIPCPU_EVENT_HPP
 
 #include <atomic>
+#include <chrono>
 
 namespace hipcpu {
 
@@ -36,26 +37,32 @@ class event
 {
 public:
   event()
-  : _is_recorded{false}
+  : _record_timestamp{0}
   {}
 
   void wait() const noexcept
   {
-    do {} while (!_is_recorded);
+    do {} while (!_record_timestamp);
   }
 
   void mark_as_finished()
   {
-    _is_recorded = true;
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    _record_timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
   }
 
   bool is_complete() const
   {
-    return _is_recorded;
+    return _record_timestamp != 0;
+  }
+
+  uint64_t timestamp_ns() const
+  {
+    return _record_timestamp;
   }
 
 private:
-  std::atomic<bool> _is_recorded;
+  std::atomic<uint64_t> _record_timestamp;
 
 };
 
