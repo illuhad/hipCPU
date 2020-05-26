@@ -780,10 +780,12 @@ hipError_t hipGetDeviceProperties(hipDeviceProp_t* p_prop, int device)
   if(device != 0)
     return hipErrorInvalidDevice;
 
-  std::string device_name = "hipCPU OpenMP host device";
+  static const char device_name[] = "hipCPU OpenMP host device";
   int max_dim = std::numeric_limits<int>::max();
 
-  strncpy(p_prop->name, device_name.c_str(), sizeof(p_prop->name)-1);
+  static_assert(sizeof device_name <= sizeof p_prop->name);
+  memcpy(p_prop->name, device_name, sizeof device_name);
+
   // TODO: Find available memory
   p_prop->totalGlobalMem = std::numeric_limits<size_t>::max();
   p_prop->sharedMemPerBlock = _hipcpu_runtime.dev().get_max_shared_memory();
