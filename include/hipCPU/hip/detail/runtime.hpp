@@ -114,7 +114,7 @@ public:
 
   bool is_valid(int id) const
   {
-    if(id >= _data.size())
+    if(id < 0 || static_cast<unsigned int>(id) >= _data.size())
       return false;
     if(_data[id] == nullptr)
       return false;
@@ -306,7 +306,11 @@ class runtime
     _devices.push_back(std::make_unique<device>());
     // Create default stream
     int stream_id = _streams.store(std::make_unique<stream>());
+#ifndef NDEBUG
     assert(stream_id == 0);
+#else
+    (void) stream_id;
+#endif
   }
 public:
   static runtime& get()
