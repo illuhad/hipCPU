@@ -47,8 +47,10 @@ public:
 
   void mark_as_finished()
   {
-    auto now = std::chrono::steady_clock::now().time_since_epoch();
-    _record_timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+    auto stamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    // still report completion correctly on a system with broken steady_clock
+    _record_timestamp = std::max<uint64_t>(static_cast<uint64_t>(stamp), 1u);
   }
 
   bool is_complete() const
