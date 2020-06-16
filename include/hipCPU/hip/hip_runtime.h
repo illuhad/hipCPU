@@ -890,7 +890,22 @@ hipError_t hipEventSynchronize(hipEvent_t event)
   return hipErrorUnknown;
 }
 
-hipError_t hipEventElapsedTime(float* ms, hipEvent_t start, hipEvent_t stop);
+inline
+hipError_t hipEventElapsedTime(float* ms, hipEvent_t start, hipEvent_t stop)
+{
+  if(!_hipcpu_runtime.events().is_valid(start) || !_hipcpu_runtime.events().is_valid(stop))
+    return hipErrorInvalidValue;
+
+  hipcpu::event* start_evt = _hipcpu_runtime.events().get(start);
+  hipcpu::event* stop_evt = _hipcpu_runtime.events().get(stop);
+  if(start_evt->is_complete() && stop_evt->is_complete())
+  {
+    *ms = static_cast<float>(stop_evt->timestamp_ns() - start_evt->timestamp_ns()) / 1e6f;
+    return hipSuccess;
+  }
+
+  return hipErrorUnknown;
+}
 
 inline
 hipError_t hipEventDestroy(hipEvent_t event)
